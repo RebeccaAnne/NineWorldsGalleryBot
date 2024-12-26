@@ -1,6 +1,8 @@
 require('dotenv').config();
 const { data, helpers } = require('./data.js');
 const postImage = require('./postImage.js').postImage;
+const path = require('node:path');
+const fs = require('node:fs');
 
 const mainTimeout = data.day * 2;//timeouts for collectors - 48 hours for initial ping, 12 hours for clarification
 const clarificationTimeout = data.day / 2
@@ -8,16 +10,39 @@ var collectors; //global variable tracking current number of collectors
 var allPostingChannels;//global variable tracking the posting channels
 
 const startUp = async (client) => {//startup function called when bot activates
+
+    console.log("Calling startUp");
+
+    const dataPath = path.join(__dirname, 'data');
+    const serverConfigFiles = fs.readdirSync(dataPath).filter(file => file.startsWith('server-config-'));
+
     collectors = 0;//start collector value at 0
+    allPostingChannels = [];
+
+    console.log("serverConfigFiles: ")
+    console.log(serverConfigFiles)
 
     //set up posting channels
-    const galleryChannel = await client.channels.cache.get(process.env.GALLERYCHANNELID); //get gallery channel
-    const victoriaChannel = await client.channels.cache.get(process.env.VICTORIACHANNELID);
-    allPostingChannels = [galleryChannel, victoriaChannel];//get both (narrow to just gallery later based on user selection)
+    for (let i = 0; i < serverConfigFiles.length; i++) {
+        let serverConfigFile = serverConfigFiles[i];
+        console.log("serverConfigFile: ")
+        console.log(serverConfigFile)
+    
+        const filePath = path.join(dataPath, serverConfigFile);
+        const serverConfig = require(filePath);
+
+        console.log(serverConfig);
+
+        const galleryChannel = await client.channels.cache.get(serverConfig.galleryChannelId); //get gallery channel
+        const victoriaChannel = await client.channels.cache.get(serverConfig.victoriaChannelId);
+        allPostingChannels[serverConfig.guildId] = [galleryChannel, victoriaChannel];//get both (narrow to just gallery later based on user selection)
+    }
 }
 
 const artCollector = async (artMessage, botResponse, reinitialize) => {
-    //takes in the art post, the bot's response message, collector tracker, and whether this is a new collector or a reinitialization
+
+    // takes in the art post, the bot's response message,  
+    // and whether this is a new collector or a reinitialization
 
     //tracking variables for reinitialization case
     var reinitialized = false;//reinitialization loop stopper
@@ -155,7 +180,8 @@ const secondaryCollectors = async (unspoiler, spoilerDetected, botResponse, artM
     return [unspoiler, spoilerTag]
 }
 
-const finishAndPost = async (reason, artMessage, botResponse, yesDetected, spoilerDetected, victoriaDetected, unspoiler, spoilerTag) => {
+const finishAndPost = async (
+    reason, artMessage, botResponse, yesDetected, spoilerDetected, victoriaDetected, unspoiler, spoilerTag) => {
     //takes in an end reason (either custom or from collector ending) and the data needed to post
 
     if (reason === 'user' || (reason === 'time' && yesDetected) || reason === data.manualEndReason) {
@@ -165,7 +191,7 @@ const finishAndPost = async (reason, artMessage, botResponse, yesDetected, spoil
 
         //if yes, make the posts!
         if (yesDetected) {
-            var postingChannels = allPostingChannels;//get all the posting channels (in format [gallery, victoria])
+            var postingChannels = allPostingChannels[artMessage.guild.id];//get all the posting channels (in format [gallery, victoria])
             if (!victoriaDetected) {//if not crossposting, limit to just the gallery channel
                 postingChannels = [allPostingChannels[0]];//still an array, but just the first element
             }
@@ -180,7 +206,8 @@ const finishAndPost = async (reason, artMessage, botResponse, yesDetected, spoil
 }
 
 const unspoilerCollector = async (artMessage, botResponse, reinitialize) => {
-    //takes in the art post's author, the bot's response message, collector tracker, and whether this is a new collector or a reinitialization
+    // takes in the art post's author, the bot's response message, collector tracker, 
+    // and whether this is a new collector or a reinitialization
 
     var reinitialized = false;//stopper variable for reinitialization loop
     var finished = false;//stopper variable for secondary collector waiting
