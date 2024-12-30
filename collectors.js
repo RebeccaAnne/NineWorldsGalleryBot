@@ -27,7 +27,6 @@ const startUp = async (client) => {//startup function called when bot activates
         let serverConfigFile = serverConfigFiles[i];
         console.log("serverConfigFile: ")
         console.log(serverConfigFile)
-
         const filePath = path.join(dataPath, serverConfigFile);
         const serverConfig = require(filePath);
 
@@ -193,10 +192,7 @@ const finishAndPost = async (
         if (yesDetected) {
             //get all the posting channels (in format [gallery, nsfw]) (Can we do better than this at some point?)
             var postingChannels = allPostingChannels[artMessage.guild.id];
-            if (nsfwDetected) {//if not crossposting, limit to just the gallery channel
-                //console.log(allPostingChannels)
-                //console.log(allPostingChannels[artMessage.guild.id])
-                //console.log(allPostingChannels[artMessage.guild.id][1])
+            if (nsfwDetected) {/
                 postingChannels = [allPostingChannels[artMessage.guild.id][1]];//still an array, but just the second element
             }
             else {
