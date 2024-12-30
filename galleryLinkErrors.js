@@ -49,7 +49,8 @@ async function galleryLinkErrors(interaction, action) {
     }
 
     //get gallery channels
-    const galleryChannels = [process.env.VICTORIACHANNELID, process.env.GALLERYCHANNELID]
+    let serverConfig = require(path.join(__dirname, "data/server-config-" + interaction.guildId + ".json"));
+    const galleryChannels = [serverConfig.galleryChannelId, serverConfig.nsfwChannelId]
 
     //channel should be a gallery channel and poster should be the bot
     if (post.author.id != process.env.BOTID || !(galleryChannels.includes(channelId))) {

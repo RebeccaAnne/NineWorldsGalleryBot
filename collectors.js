@@ -40,6 +40,8 @@ const startUp = async (client) => {//startup function called when bot activates
 
 const artCollector = async (artMessage, botResponse, reinitialize) => {
 
+    console.log(botResponse.guildId)
+
     // takes in the art post, the bot's response message,  
     // and whether this is a new collector or a reinitialization
 
@@ -93,7 +95,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
                 reaction.emoji.name === helpers.checkEmoji) && user.id === artMessage.author.id;
         };
         const collector = botResponse.createReactionCollector({ filter: collectorFilter, time: mainTimeout, dispose: true }); //watch the message for the right emoji
-        collectors = await data.collectorsUp(collectors, botResponse.channelId, botResponse.id, true);
+        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, true);
         //increment active collectors and report (do add to file, even reinitialize has removed it and needs it back)
 
         //end on detecting ✅, record detecting the others
@@ -126,7 +128,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
             //check if there's going to be another collector opening up
             if (spoilerDetected || unspoiler) { editTrackerFile = false }//in the two conditions where more clarification is needed, don't remove that post link from the tracking list
 
-            collectors = await data.collectorsDown(collectors, botResponse.channelId, botResponse.id, editTrackerFile);//decrement active collectors on end and report
+            collectors = await data.collectorsDown(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, editTrackerFile);//decrement active collectors on end and report
             //file edit is conditional on spoiler conditions - don't remove the post link if another collector is about to start on the exact same post
 
             var replaceMessage;//determine the new message to edit the post to
@@ -251,7 +253,7 @@ const unspoilerCollector = async (artMessage, botResponse, reinitialize) => {
     }
     if (reinitialize) await data.waitFor(_ => reinitialized === true);//if reinitializing, wait for the reaction loop to complete 
     if (collectorNeeded) {//don't collect unless needed
-        collectors = await data.collectorsUp(collectors, botResponse.channelId, botResponse.id, reinitialize);//increment active collectors and report 
+        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, reinitialize);//increment active collectors and report 
         //don't add to file unless this is a reinitialization
 
         const unspoilerFilter = (reaction, user) => { return ((reaction.emoji.name === helpers.yesEmoji || reaction.emoji.name === helpers.noEmoji) && user.id === artMessage.author.id) };//filter for emojis by original poster
@@ -274,7 +276,7 @@ const unspoilerCollector = async (artMessage, botResponse, reinitialize) => {
         // }); //does not currently run, fix later
 
         unspoilerCollector.on('end', async () => {
-            collectors = await data.collectorsDown(collectors, botResponse.channelId, botResponse.id, true);
+            collectors = await data.collectorsDown(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, true);
         });//decrement active collectors and report (edit file, no longer tracking post)                 
 
         await data.waitFor(_ => finished === true);//waits for finished to be true, which happens when collector has gotten an answer and close
@@ -330,7 +332,7 @@ const spoilerCollector = async (artMessage, botResponse, reinitialize) => {
         const replyFilter = (reply) => { return (artMessage.author.id === reply.author.id && reply.reference && reply.reference.messageId === botResponse.id) };//filter for a reply from the poster to the bot
         const replyCollector = botResponse.channel.createMessageCollector({ filter: replyFilter, time: clarificationTimeout, max: 1 })//message collector watches for just the first applicable reply
         const noCollector = botResponse.createReactionCollector({ filter: noFilter, time: clarificationTimeout }); //reaction collector watches for a 🇳
-        collectors = await data.collectorsUp(collectors, botResponse.channelId, botResponse.id, reinitialize);//increment active collectors and report 
+        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, reinitialize);//increment active collectors and report 
         //don't add to file unless this is a reinitialization
 
         var spoilerTag;//create blank, collect if supplied
@@ -345,7 +347,7 @@ const spoilerCollector = async (artMessage, botResponse, reinitialize) => {
         })
         await replyCollector.on('end', async () => {
             noCollector.stop() //make sure both collectors stop  
-            collectors = await data.collectorsDown(collectors, botResponse.channelId, botResponse.id, true);//decrement active collectors and report (edit file, no longer tracking post)
+            collectors = await data.collectorsDown(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, true);//decrement active collectors and report (edit file, no longer tracking post)
             finished = true;//when it stops waiting for replies it is done
         })
 

@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, GuildApplicationCommandManager } = require('discord.js');
 require('dotenv').config();
 const { data, helpers } = require('./data.js');
 
@@ -14,7 +14,7 @@ async function postImage(artMessage, postingChannels, spoiler, spoilerTag, unspo
         var messageContent = artMessage.content.replace(`<@${process.env.BOTID}>`, "");
 
         const artLink = helpers.generateLink(
-            process.env.GUILDID,
+            artMessage.guild.id,
             artMessage.channel.id,
             artMessage.id); //create link to original post
 
@@ -63,21 +63,23 @@ async function postImage(artMessage, postingChannels, spoiler, spoilerTag, unspo
         var galleryPost;
         var victoriaLink;
         await postingChannels[0].send(artPost).then(sent => { //make link to posted message
-            galleryLink = helpers.generateLink(process.env.GUILDID, process.env.GALLERYCHANNELID, sent.id)
+            galleryLink = helpers.generateLink(artMessage.guild.id, artMessage.channel.id, sent.id)
             galleryPost = sent; //save first post
         });
 
-        if (postingChannels.length > 1) {//if more than one channel keep going
-            var originalLink = embed.data.fields.find(f => f.name === "Links").value
-            artPost.embeds[0].data.fields.find(f => f.name === "Links").value = originalLink + ` / [Gallery](${galleryLink})`;
+        // This is support the Victoria channel, which we don't have. Revisit this code if we have 
+        // a scenario where the same post ends up in more than once place.
+        // if (postingChannels.length > 1) {//if more than one channel keep going
+        //     var originalLink = embed.data.fields.find(f => f.name === "Links").value
+        //     artPost.embeds[0].data.fields.find(f => f.name === "Links").value = originalLink + ` / [Gallery](${galleryLink})`;
 
-            await postingChannels[1].send(artPost).then(sent => { //make link
-                victoriaLink = helpers.generateLink(process.env.GUILDID, process.env.VICTORIACHANNELID, sent.id)
-                //now edit the original post with this data
-                embed.data.fields.find(f => f.name === "Links").value = originalLink + ` / [Victoria's Gallery](${victoriaLink})`;
-                galleryPost.edit({ embeds: [embed] });//edit first post
-            });
-        }
+        //     await postingChannels[1].send(artPost).then(sent => { //make link
+        //         victoriaLink = helpers.generateLink(artMessage.guild.id, /*victoriachannelid*/, sent.id)
+        //         //now edit the original post with this data
+        //         embed.data.fields.find(f => f.name === "Links").value = originalLink + ` / [Victoria's Gallery](${victoriaLink})`;
+        //         galleryPost.edit({ embeds: [embed] });//edit first post
+        //     });
+        // }
     }
 
     //return from posting with the correct confirmation message

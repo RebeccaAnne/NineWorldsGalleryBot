@@ -68,19 +68,19 @@ const data = {
         }
         return new Promise(poll)
     },
-    collectorsUp: async (collectors, channelId, messageId, editFile) => {
-        const link = helpers.generateLink(process.env.GUILDID, channelId, messageId) //generate discord link
+    collectorsUp: async (collectors, guildId, channelId, messageId, editFile) => {
+        const link = helpers.generateLink(guildId, channelId, messageId) //generate discord link
         if (editFile) {//if editing file, write the link on a new line of the tracker file
             await fs.appendFile(helpers.filename, link + "\n", (err) => { if (err) console.log(err); });//log error if any
         }
         return helpers.collectorTracker("activated", collectors + 1);
     },//increment collector counter and return
-    collectorsDown: async (collectors, channelId, messageId, editFile) => {
+    collectorsDown: async (collectors, guildId, channelId, messageId, editFile) => {
         if (editFile) {//if editing file
             //read in whole file
             await fs.readFile(helpers.filename, (err, contents) => {
                 if (err) console.log(err);//log error if any
-                const link = helpers.generateLink(process.env.GUILDID, channelId, messageId) //generate discord link
+                const link = helpers.generateLink(guildId, channelId, messageId) //generate discord link
                 const updatedContents = contents.toString().replace(link, "").trim();//replace first instance of that link in the file with nothing
                 fs.writeFile(helpers.filename, updatedContents, (err) => { if (err) console.log(err); })//overwrite file with updated contents
             });

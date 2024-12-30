@@ -17,9 +17,7 @@ module.exports = {
 			"Currently I can change or remove titles, descriptions, and spoiler tags.\n\n" +
 			"Note that remove and change are different - I have text inputs for updating info and True/False inputs for removing it.\n\n" +
 			"If the piece is posted in both galleries, I will fix both posts (I do this using the links!).";
-		const deleteText = "If you use /delete and give me a link to one of your art posts in one of my galleries, I can remove it for you!\n\n" +
-			`Currently this command removes crossposted art from both galleries. ` +
-			`If you want to remove only Victoria's copy of a post, you can /delete both and have me repost.`;
+		const deleteText = "If you use /delete and give me a link to one of your art posts in one of my galleries, I can remove it for you!" 
 		const spoilerText = "Sometimes I need clarification about what people want me to do with spoilers, to make sure my gallery is as well organized as possible.\n\n" +
 			"You don't need to spoiler Nine Worlds content in my galleries, but please do spoiler nsfw or potentially upsetting material.\n\n" +
 			"If you don't ask me to spoiler an image but it's spoilered in the original post, I'll offer to remove the spoiler. This won't change anything else about the image.\n\n" +
