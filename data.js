@@ -6,7 +6,8 @@ const helpers = {
     noEmoji: "👎",
     yEmoji: "🇾",
     nEmoji: "🇳",
-    spoilerEmoji: "🔒",
+    spoilerEmoji: "😈",
+    nsfwEmoji: "🍌",
     victoriaEmoji: "✍️",
     checkEmoji: "✅",
     collectorTracker: (verb, collectors) => {
@@ -25,11 +26,12 @@ const helpers = {
 
 const data = {
     artResponseMessage: (artistId) => {
-        return "Hi, <@" + artistId + `>! It looks like you posted some art! Please react with ${helpers.yEmoji} if you want me to put it in my gallery. ` +
-            "(You can edit it there later if you'd like.)\n\n" +
-            `You can use ${helpers.spoilerEmoji} to tell me to spoiler it when I post it. You don't have to spoiler Nine Worlds content in the galleries, but if there's something NSFW or potentially ` +
-            "upsetting, please do use a spoiler and tag the reason. (I ask for spoiler tags before posting, and you can /edit them in later if needed!)" +
-            `If you add ${helpers.victoriaEmoji}, I\'ll share it with Victoria as well.\n\n` +
+        return "Hi, <@" + artistId +
+            `>! It looks like you posted some art! Please react with ${helpers.yEmoji} if you want me to put it in my gallery.\n` +
+            " (You can delete it or edit the text later with /delete or /edit.)\n\n" +
+            `Please use ${helpers.nsfwEmoji} if your post has explicit sexual content. \n` +
+            `Please use ${helpers.spoilerEmoji} if your post has content warnings such as noncon or graphic depictions of violence. \n` +
+            "(I'll ask for specific tags before posting, and the image will be put behind spoilers in the gallery.)\n\n" +
             `When you're done reacting, or if you don't want me to post, please click ${helpers.checkEmoji} to tell me to move on.`
     },
     noMessage: "Okay, I won't post this image to the gallery. Thanks for telling me!",
