@@ -27,15 +27,14 @@ const startUp = async (client) => {//startup function called when bot activates
         let serverConfigFile = serverConfigFiles[i];
         console.log("serverConfigFile: ")
         console.log(serverConfigFile)
-    
         const filePath = path.join(dataPath, serverConfigFile);
         const serverConfig = require(filePath);
 
         console.log(serverConfig);
 
         const galleryChannel = await client.channels.cache.get(serverConfig.galleryChannelId); //get gallery channel
-        const victoriaChannel = await client.channels.cache.get(serverConfig.victoriaChannelId);
-        allPostingChannels[serverConfig.guildId] = [galleryChannel, victoriaChannel];//get both (narrow to just gallery later based on user selection)
+        const nsfwChannel = await client.channels.cache.get(serverConfig.nsfwChannelId);
+        allPostingChannels[serverConfig.guildId] = [galleryChannel, nsfwChannel];//get both (narrow to just gallery later based on user selection)
     }
 }
 
@@ -51,13 +50,13 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
     //set up emoji tracker variables
     var yesDetected = false;
     var spoilerDetected = false;
-    var victoriaDetected = false;
+    var nsfwDetected = false;
     var doneDetected = false;
 
     if (reinitialize) {//check emoji on reinitialize - collector may not be needed
         var processed = 0; //counter for loop
         botResponse.reactions.cache.forEach(async (reaction) => {//iterate through existing reactions - listen for the original 4
-            if ((reaction.emoji.name === helpers.yEmoji || reaction.emoji.name === helpers.spoilerEmoji || reaction.emoji.name === helpers.victoriaEmoji ||
+            if ((reaction.emoji.name === helpers.yEmoji || reaction.emoji.name === helpers.spoilerEmoji || reaction.emoji.name === helpers.nsfwEmoji ||
                 reaction.emoji.name === helpers.checkEmoji)) {
                 const reactors = await reaction.users.fetch();//get the people who reacted
                 reactors.forEach(async (id) => {//for each person who used each emoji
@@ -65,7 +64,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
                         if (reaction.emoji.name === helpers.checkEmoji) doneDetected = true
                         else if (reaction.emoji.name === helpers.yEmoji) yesDetected = true
                         else if (reaction.emoji.name === helpers.spoilerEmoji) spoilerDetected = true
-                        else if (reaction.emoji.name === helpers.victoriaEmoji) victoriaDetected = true
+                        else if (reaction.emoji.name === helpers.nsfwEmoji) nsfwDetected = true
                     }
                 })
             }
@@ -90,7 +89,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
     if (collectorNeeded) {//don't run the collector if it's not necessary
 
         const collectorFilter = (reaction, user) => {//filter for specific emoji and original poster
-            return (reaction.emoji.name === helpers.yEmoji || reaction.emoji.name === helpers.spoilerEmoji || reaction.emoji.name === helpers.victoriaEmoji ||
+            return (reaction.emoji.name === helpers.yEmoji || reaction.emoji.name === helpers.spoilerEmoji || reaction.emoji.name === helpers.nsfwEmoji ||
                 reaction.emoji.name === helpers.checkEmoji) && user.id === artMessage.author.id;
         };
         const collector = botResponse.createReactionCollector({ filter: collectorFilter, time: mainTimeout, dispose: true }); //watch the message for the right emoji
@@ -101,7 +100,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
         collector.on('collect', async (reaction, user) => {
             if (!yesDetected && reaction.emoji.name === helpers.yEmoji) yesDetected = true; //use detector vars to know when they're clicked
             if (!spoilerDetected && reaction.emoji.name === helpers.spoilerEmoji) spoilerDetected = true;
-            if (!victoriaDetected && reaction.emoji.name === helpers.victoriaEmoji) victoriaDetected = true;
+            if (!nsfwDetected && reaction.emoji.name === helpers.nsfwEmoji) nsfwDetected = true;
 
             if (!doneDetected && reaction.emoji.name === helpers.checkEmoji) {
                 doneDetected = true; //this one only reacts the first time and doesn't care if it's removed
@@ -112,7 +111,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
         collector.on('remove', (reaction) => {
             if (yesDetected && reaction.emoji.name === helpers.yEmoji) yesDetected = false; //toggle detector vars on remove
             if (spoilerDetected && reaction.emoji.name === helpers.spoilerEmoji) spoilerDetected = false;
-            if (victoriaDetected && reaction.emoji.name === helpers.victoriaEmoji) victoriaDetected = false;
+            if (nsfwDetected && reaction.emoji.name === helpers.nsfwEmoji) nsfwDetected = false;
         });
 
         collector.on('end', async (collected, reason) => {//edit instruction message on collector stop
@@ -140,7 +139,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
                 [unspoiler, spoilerTag] = await secondaryCollectors(unspoiler, spoilerDetected, botResponse, artMessage);
 
                 //feed all collected data into finish and post function!
-                finishAndPost(reason, artMessage, botResponse, yesDetected, spoilerDetected, victoriaDetected, unspoiler, spoilerTag);//make the post!
+                finishAndPost(reason, artMessage, botResponse, yesDetected, spoilerDetected, nsfwDetected, unspoiler, spoilerTag);//make the post!
             }
 
         });
@@ -151,7 +150,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
         //check secondary collector conditions and run those if applicable
         if (spoilerDetected || unspoiler) [unspoiler, spoilerTag] = await secondaryCollectors(unspoiler, spoilerDetected, botResponse, artMessage);
 
-        finishAndPost(data.manualEndReason, artMessage, botResponse, yesDetected, spoilerDetected, victoriaDetected, unspoiler, spoilerTag);//make the post!
+        finishAndPost(data.manualEndReason, artMessage, botResponse, yesDetected, spoilerDetected, nsfwDetected, unspoiler, spoilerTag);//make the post!
     }
 }
 
@@ -181,7 +180,7 @@ const secondaryCollectors = async (unspoiler, spoilerDetected, botResponse, artM
 }
 
 const finishAndPost = async (
-    reason, artMessage, botResponse, yesDetected, spoilerDetected, victoriaDetected, unspoiler, spoilerTag) => {
+    reason, artMessage, botResponse, yesDetected, spoilerDetected, nsfwDetected, unspoiler, spoilerTag) => {
     //takes in an end reason (either custom or from collector ending) and the data needed to post
 
     if (reason === 'user' || (reason === 'time' && yesDetected) || reason === data.manualEndReason) {
@@ -191,9 +190,14 @@ const finishAndPost = async (
 
         //if yes, make the posts!
         if (yesDetected) {
-            var postingChannels = allPostingChannels[artMessage.guild.id];//get all the posting channels (in format [gallery, victoria])
-            if (!victoriaDetected) {//if not crossposting, limit to just the gallery channel
-                postingChannels = [allPostingChannels[0]];//still an array, but just the first element
+            //get all the posting channels (in format [gallery, nsfw]) (Can we do better than this at some point?)
+            var postingChannels = allPostingChannels[artMessage.guild.id];
+            if (nsfwDetected) {
+                postingChannels = [allPostingChannels[artMessage.guild.id][1]];//still an array, but just the second element
+            }
+            else {
+                console.log(allPostingChannels[artMessage.guild.id][1])
+                postingChannels = [allPostingChannels[artMessage.guild.id][0]];//still an array, but just the first element
             }
             confirmationMessage = await postImage(artMessage, postingChannels, spoilerDetected, spoilerTag, unspoiler); //post to channels and return links to posts!
         }
@@ -216,19 +220,20 @@ const unspoilerCollector = async (artMessage, botResponse, reinitialize) => {
     //tracking variables for reinitialization case
     var unspoilerYes = false;
     var unspoilerNo = false;
-    var victoriaDetected = false;//default false
+    var nsfwDetected = false;//default false
     var collectorNeeded = true; //whether to run the collector at all - defaults true
 
     if (reinitialize) {//check emoji on reinitialize - collector may not be needed
         var processed = 0; //counter for loop
-        botResponse.reactions.cache.forEach(async (reaction) => {//iterate through existing reactions - listen for victoria and the two specific to this case
-            if (reaction.emoji.name === helpers.yesEmoji || reaction.emoji.name === helpers.noEmoji || reaction.emoji.name === helpers.victoriaEmoji) {
+        botResponse.reactions.cache.forEach(async (reaction) => {
+            //iterate through existing reactions - listen for nsfw and the two specific to this case
+            if (reaction.emoji.name === helpers.yesEmoji || reaction.emoji.name === helpers.noEmoji || reaction.emoji.name === helpers.nsfwEmoji) {
                 const reactors = await reaction.users.fetch();//get the people who reacted
                 reactors.forEach(async (id) => {//for each person who used each emoji
                     if (id == artMessage.author.id) {//only care about emoji from the artist
                         if (reaction.emoji.name === helpers.yesEmoji) unspoilerYes = true//save emoji values
                         else if (reaction.emoji.name === helpers.noEmoji) unspoilerNo = true
-                        else if (reaction.emoji.name === helpers.victoriaEmoji) victoriaDetected = true
+                        else if (reaction.emoji.name === helpers.nsfwEmoji) nsfwDetected = true
                     }
                 })
             }
@@ -278,8 +283,8 @@ const unspoilerCollector = async (artMessage, botResponse, reinitialize) => {
     if (reinitialize) {
         //if it's a reinitialization, run finish and post here
         var spoilerTag;//should be undefined
-        //yes is true and spoiler is false due to having gotten this far, remaining variable is Victoria
-        finishAndPost(data.manualEndReason, artMessage, botResponse, true, false, victoriaDetected, unspoiler, spoilerTag);
+        //yes is true and spoiler is false due to having gotten this far, remaining variable is nsfw
+        finishAndPost(data.manualEndReason, artMessage, botResponse, true, false, nsfwDetected, unspoiler, spoilerTag);
     }
 
     return unspoiler;//return unspoiler status
@@ -293,18 +298,18 @@ const spoilerCollector = async (artMessage, botResponse, reinitialize) => {
 
     //tracking variables for reinitialization case
     var noSpoilerTag = false;
-    var victoriaDetected = false;//default false
+    var nsfwDetected = false;//default false
     var collectorNeeded = true; //whether to run the collector at all - defaults true
 
     if (reinitialize) {//check emoji on reinitialize - collector may not be needed
         var processed = 0; //counter for loop
-        botResponse.reactions.cache.forEach(async (reaction) => {//iterate through existing reactions - listen for victoria and the specific 🇳 reaction
-            if (reaction.emoji.name === helpers.nEmoji || reaction.emoji.name === helpers.victoriaEmoji) {
+        botResponse.reactions.cache.forEach(async (reaction) => {//iterate through existing reactions - listen for nsfw and the specific 🇳 reaction
+            if (reaction.emoji.name === helpers.nEmoji || reaction.emoji.name === helpers.nsfwEmoji) {
                 const reactors = await reaction.users.fetch();//get the people who reacted
                 reactors.forEach(async (id) => {//for each person who used each emoji
                     if (id == artMessage.author.id) {//only care about emoji from the artist
                         if (reaction.emoji.name === helpers.nEmoji) noSpoilerTag = true
-                        else if (reaction.emoji.name === helpers.victoriaEmoji) victoriaDetected = true
+                        else if (reaction.emoji.name === helpers.nsfwEmoji) nsfwDetected = true
                     }
                 })
             }
@@ -349,8 +354,8 @@ const spoilerCollector = async (artMessage, botResponse, reinitialize) => {
     }
     if (reinitialize) {
         //if it's a reinitialization, run finish and post here
-        //yes and spoiler true, unspoiler false due to having gotten this far, remaining variable is Victoria
-        finishAndPost(data.manualEndReason, artMessage, botResponse, true, true, victoriaDetected, false, spoilerTag);
+        //yes and spoiler true, unspoiler false due to having gotten this far, remaining variable is nsfw
+        finishAndPost(data.manualEndReason, artMessage, botResponse, true, true, nsfwDetected, false, spoilerTag);
     }
 
     return spoilerTag;//return spoiler tag for use in posting

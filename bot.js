@@ -137,8 +137,8 @@ client.on("messageCreate", async pingMessage => {//respond to messages where the
 
       artMessage.reply(data.artResponseMessage(artMessage.author.id)).then(async (botResponse) => {//send the message, including user reference
         botResponse.react(helpers.yEmoji);
+        botResponse.react(helpers.nsfwEmoji);
         botResponse.react(helpers.spoilerEmoji);
-        botResponse.react(helpers.victoriaEmoji);
         botResponse.react(helpers.checkEmoji);//bot reacts to its own message with all the emojis
 
         //initialize collector (the function will post, it doesn't need data return but does need client context)
