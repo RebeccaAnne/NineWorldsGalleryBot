@@ -192,7 +192,7 @@ const finishAndPost = async (
         if (yesDetected) {
             //get all the posting channels (in format [gallery, nsfw]) (Can we do better than this at some point?)
             var postingChannels = allPostingChannels[artMessage.guild.id];
-            if (nsfwDetected) {/
+            if (nsfwDetected) {
                 postingChannels = [allPostingChannels[artMessage.guild.id][1]];//still an array, but just the second element
             }
             else {
