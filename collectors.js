@@ -25,12 +25,12 @@ const startUp = async (client) => {//startup function called when bot activates
     //set up posting channels
     for (let i = 0; i < serverConfigFiles.length; i++) {
         let serverConfigFile = serverConfigFiles[i];
-        console.log("serverConfigFile: ")
-        console.log(serverConfigFile)
+        //console.log("serverConfigFile: ")
+        //console.log(serverConfigFile)
         const filePath = path.join(dataPath, serverConfigFile);
         const serverConfig = require(filePath);
 
-        console.log(serverConfig);
+        //console.log(serverConfig);
 
         const galleryChannel = await client.channels.cache.get(serverConfig.galleryChannelId); //get gallery channel
         const nsfwChannel = await client.channels.cache.get(serverConfig.nsfwChannelId);
@@ -196,7 +196,6 @@ const finishAndPost = async (
                 postingChannels = [allPostingChannels[artMessage.guild.id][1]];//still an array, but just the second element
             }
             else {
-                console.log(allPostingChannels[artMessage.guild.id][1])
                 postingChannels = [allPostingChannels[artMessage.guild.id][0]];//still an array, but just the first element
             }
             confirmationMessage = await postImage(artMessage, postingChannels, spoilerDetected, spoilerTag, unspoiler); //post to channels and return links to posts!
