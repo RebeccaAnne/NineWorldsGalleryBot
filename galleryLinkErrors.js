@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('node:path')
 const { data } = require('./data.js');
 
 async function galleryLinkErrors(interaction, action) {
