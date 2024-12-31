@@ -35,6 +35,8 @@ const startUp = async (client) => {//startup function called when bot activates
         const galleryChannel = await client.channels.cache.get(serverConfig.galleryChannelId); //get gallery channel
         const nsfwChannel = await client.channels.cache.get(serverConfig.nsfwChannelId);
         allPostingChannels[serverConfig.guildId] = [galleryChannel, nsfwChannel];//get both (narrow to just gallery later based on user selection)
+        console.log("allPostingChannels: ")
+        console.log(allPostingChannels)
     }
 }
 
@@ -200,6 +202,9 @@ const finishAndPost = async (
             else {
                 postingChannels = [allPostingChannels[artMessage.guild.id][0]];//still an array, but just the first element
             }
+            console.log("guildId: " + artMessage.guild.id)
+            console.log("postingChannels: ")
+            console.log(postingChannels)
             confirmationMessage = await postImage(artMessage, postingChannels, spoilerDetected, spoilerTag, unspoiler); //post to channels and return links to posts!
         }
         replaceMessage = confirmationMessage//prepare to edit in the message
