@@ -35,9 +35,9 @@ const startUp = async (client) => {//startup function called when bot activates
         const galleryChannel = await client.channels.cache.get(serverConfig.galleryChannelId); //get gallery channel
         const nsfwChannel = await client.channels.cache.get(serverConfig.nsfwChannelId);
         allPostingChannels[serverConfig.guildId] = [galleryChannel, nsfwChannel];//get both (narrow to just gallery later based on user selection)
-        console.log("allPostingChannels: ")
-        console.log(allPostingChannels)
     }
+    console.log("allPostingChannels: ");
+    console.log(allPostingChannels);
 }
 
 const artCollector = async (artMessage, botResponse, reinitialize) => {
