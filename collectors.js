@@ -36,13 +36,18 @@ const startUp = async (client) => {//startup function called when bot activates
         const nsfwChannel = await client.channels.cache.get(serverConfig.nsfwChannelId);
         allPostingChannels[serverConfig.guildId] = [galleryChannel, nsfwChannel];//get both (narrow to just gallery later based on user selection)
     }
-    console.log("allPostingChannels: ");
-    console.log(allPostingChannels);
 }
 
 const artCollector = async (artMessage, botResponse, reinitialize) => {
 
-    console.log(botResponse.guildId)
+    if (reinitialize) {
+        console.log("Restarting collector for ")
+    }
+    else {
+        console.log("Starting collector for ")
+    }
+
+    console.log("Guild: " + artMessage.guild.id + " Channel: " + artMessage.channel.id + "Message: " + artMessage.id)
 
     // takes in the art post, the bot's response message,  
     // and whether this is a new collector or a reinitialization
