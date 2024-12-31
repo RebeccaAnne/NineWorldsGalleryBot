@@ -62,9 +62,11 @@ async function postImage(artMessage, postingChannels, spoiler, spoilerTag, unspo
         var galleryLink;
         var galleryPost;
         var victoriaLink;
+        console.log("Posting to channel: " + postingChannels[0])
         await postingChannels[0].send(artPost).then(sent => { //make link to posted message
             galleryLink = helpers.generateLink(artMessage.guild.id, artMessage.channel.id, sent.id)
             galleryPost = sent; //save first post
+            console.log("Gallery Link: " + galleryLink)
         });
 
         // This is support the Victoria channel, which we don't have. Revisit this code if we have 
