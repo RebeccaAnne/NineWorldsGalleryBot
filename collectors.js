@@ -208,8 +208,6 @@ const finishAndPost = async (
                 postingChannels = [allPostingChannels[artMessage.guild.id][0]];//still an array, but just the first element
             }
             console.log("guildId: " + artMessage.guild.id)
-            console.log("postingChannels: ")
-            console.log(postingChannels)
             confirmationMessage = await postImage(artMessage, postingChannels, spoilerDetected, spoilerTag, unspoiler); //post to channels and return links to posts!
         }
         replaceMessage = confirmationMessage//prepare to edit in the message
