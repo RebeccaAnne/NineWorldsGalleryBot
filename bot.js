@@ -83,17 +83,26 @@ client.on("ready", async () => {//when the bot first logs in
               try { artMessage = await cachedChannel.messages.fetch(repliedTo.messageId); } catch { return }//get referenced message or skip
               if (artMessage.attachments.size > 0 && artMessage.author.id != process.env.BOTID) {//check that the reference message has art and is not by the bot
 
+                // The code in here depends on the strings not changing! I changed the strings and... oh no. 
+                // This was the fix-it code to get us back on track. Sometime in the future i should make this
+                // NOT depend on the strings not changing
+                // if(cachedPost.content == data.genericEndMessage)
+                // {
+                //   await cachedPost.edit({content:data.artResponseMessage(artMessage.author.id)});
+                //   console.log("Fixing post " + link)
+                // }
+
                 //use the content of the bot's post to determine its status, then run respective collectors with reinitialize flag
                 if (cachedPost.content === data.artResponseMessage(artMessage.author.id)) {
-                  artCollector(artMessage, cachedPost, true)
+                  await artCollector(artMessage, cachedPost, true)
                   reinitializedPosts++;
                 }
                 else if (cachedPost.content === data.spoilerMessage) {
-                  spoilerCollector(artMessage, cachedPost, true)
+                  await spoilerCollector(artMessage, cachedPost, true)
                   reinitializedPosts++;
                 }
                 else if (cachedPost.content === data.unspoilerMessage) {
-                  unspoilerCollector(artMessage, cachedPost, true);
+                  await unspoilerCollector(artMessage, cachedPost, true);
                   reinitializedPosts++;
                 }
                 else {//if it got this far and nothing matched, edit post with unwatch message
