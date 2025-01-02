@@ -47,7 +47,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
         console.log("Starting collector for ")
     }
 
-    console.log("Guild: " + artMessage.guild.id + " Channel: " + artMessage.channel.id + "Message: " + artMessage.id)
+    console.log("Guild: " + artMessage.guild.id + " Channel: " + artMessage.channel.id + " Message: " + artMessage.id)
 
     // takes in the art post, the bot's response message,  
     // and whether this is a new collector or a reinitialization

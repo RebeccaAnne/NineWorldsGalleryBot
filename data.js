@@ -24,6 +24,9 @@ const helpers = {
     filename: 'watchedPosts.txt',
 }
 
+// IMPORTANT NOTE: You CANNOT change these strings while there are active posts being watched! The code will get confused
+// if the strings don't match and give up on them!
+
 const data = {
     artResponseMessage: (artistId) => {
         return "Hi, <@" + artistId +

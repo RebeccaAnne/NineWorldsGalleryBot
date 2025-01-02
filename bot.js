@@ -92,17 +92,31 @@ client.on("ready", async () => {//when the bot first logs in
                 //   console.log("Fixing post " + link)
                 // }
 
+                var howLongAgo = Date.now() - cachedPost.createdTimestamp;
+
+
                 //use the content of the bot's post to determine its status, then run respective collectors with reinitialize flag
-                if (cachedPost.content === data.artResponseMessage(artMessage.author.id)) {
-                  await artCollector(artMessage, cachedPost, true)
+                if( howLongAgo > data.day * 2)
+                {
+                  await cachedPost.edit({ content: data.timeout });
+                  droppedPosts++;//drop 1 - different tracking number
+
+                  console.log("Dropping post for timeout: " + link)
+                  console.log("Now is " + Date.now())
+                  console.log("Post is " + cachedPost.createdTimestamp)
+                  console.log("How long ago " + howLongAgo)
+                  console.log("48 hours " + data.day * 2)
+                }
+                else if (cachedPost.content === data.artResponseMessage(artMessage.author.id)) {
+                  artCollector(artMessage, cachedPost, true)
                   reinitializedPosts++;
                 }
                 else if (cachedPost.content === data.spoilerMessage) {
-                  await spoilerCollector(artMessage, cachedPost, true)
+                  spoilerCollector(artMessage, cachedPost, true)
                   reinitializedPosts++;
                 }
                 else if (cachedPost.content === data.unspoilerMessage) {
-                  await unspoilerCollector(artMessage, cachedPost, true);
+                  unspoilerCollector(artMessage, cachedPost, true);
                   reinitializedPosts++;
                 }
                 else {//if it got this far and nothing matched, edit post with unwatch message
