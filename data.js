@@ -30,7 +30,7 @@ const data = {
             `>! It looks like you posted some art! Please react with ${helpers.yEmoji} if you want me to put it in my gallery.\n` +
             " (You can delete it or edit the text later with /delete or /edit.)\n\n" +
             `Please use ${helpers.nsfwEmoji} if your post has explicit sexual content. \n` +
-            `Please use ${helpers.spoilerEmoji} if your post has content warnings such as noncon or graphic depictions of violence. \n` +
+            `Please use ${helpers.spoilerEmoji} if your post has content warnings such as noncon, major character death, or graphic depictions of violence. ` +
             "(I'll ask for specific tags before posting, and the image will be put behind spoilers in the gallery.)\n\n" +
             `When you're done reacting, or if you don't want me to post, please click ${helpers.checkEmoji} to tell me to move on.`
     },
@@ -44,7 +44,7 @@ const data = {
         yesMessage += ". If you need to fix things later, you can always use /edit!"; //end
         return yesMessage;
     },
-    unspoilerMessage: "You didn't ask me to add spoilers, but at least one image here is already spoilered. Would you like me to post your art with all image spoilers removed?\n\n" +
+    unspoilerMessage: "You didn't mark this message as having content warnings, but at least one image here is already spoilered. Would you like me to post your art to the gallery with all image spoilers removed?\n\n" +
         `Please tell me ${helpers.yesEmoji} or ${helpers.noEmoji}`,
     spoilerMessage: "Do you want to add a spoiler tag to the gallery post? You can reply to this post with the spoiler tag.\n\n" +
         `If you use ${helpers.nEmoji} (or ignore me long enough), I'll move on without a tag.`,
