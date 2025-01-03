@@ -93,11 +93,20 @@ client.on("ready", async () => {//when the bot first logs in
                 // }
 
                 var howLongAgo = Date.now() - cachedPost.createdTimestamp;
+                var yesDetected = false
 
+                if (cachedPost.reactions.cache.has(helpers.yEmoji)) {
+                  var reaction = cachedPost.reactions.cache.get(helpers.yEmoji)
+                  const reactors = await reaction.users.fetch();//get the people who reacted
+                  if (reactors.has(artMessage.author.id)) {
+                    console.log("Yes detected for " + link);
+                    yesDetected = true
+                  }
+                }
 
                 //use the content of the bot's post to determine its status, then run respective collectors with reinitialize flag
-                if( howLongAgo > data.day * 2)
-                {
+                if (howLongAgo > data.day * 2 && yesDetected == false) {
+
                   await cachedPost.edit({ content: data.timeout });
                   droppedPosts++;//drop 1 - different tracking number
 
