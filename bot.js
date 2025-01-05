@@ -131,6 +131,7 @@ client.on("ready", async () => {//when the bot first logs in
                   reinitializedPosts++;
                 }
                 else {//if it got this far and nothing matched, edit post with unwatch message
+                  console.log("Dropping post " + link);
                   await cachedPost.edit({ content: data.genericEndMessage });
                   droppedPosts.push(link);//drop 1 - different tracking number
                 }
