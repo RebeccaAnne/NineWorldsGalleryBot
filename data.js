@@ -1,5 +1,8 @@
 require('dotenv').config();
 const fs = require('node:fs');
+const { Mutex } = require('async-mutex');
+
+let globalMutex;
 
 const helpers = {
     yesEmoji: "👍",
@@ -71,21 +74,31 @@ const data = {
         }
         return new Promise(poll)
     },
+    getMutex: () => {
+        if (!globalMutex) {
+            globalMutex = new Mutex();
+        }
+        return globalMutex;
+    },
     collectorsUp: async (collectors, guildId, channelId, messageId, editFile) => {
         const link = helpers.generateLink(guildId, channelId, messageId) //generate discord link
         if (editFile) {//if editing file, write the link on a new line of the tracker file
-            await fs.appendFile(helpers.filename, link + "\n", (err) => { if (err) console.log(err); });//log error if any
+            await data.getMutex().runExclusive(async () => {
+                fs.appendFile(helpers.filename, link + "\n", (err) => { if (err) console.log(err); });//log error if any
+            })
         }
         return helpers.collectorTracker("activated", collectors + 1);
     },//increment collector counter and return
     collectorsDown: async (collectors, guildId, channelId, messageId, editFile) => {
         if (editFile) {//if editing file
             //read in whole file
-            await fs.readFile(helpers.filename, (err, contents) => {
+            await data.getMutex().runExclusive(async () => {
+                fs.readFile(helpers.filename, (err, contents) => {
                 if (err) console.log(err);//log error if any
                 const link = helpers.generateLink(guildId, channelId, messageId) //generate discord link
                 const updatedContents = contents.toString().replace(link, "").trim();//replace first instance of that link in the file with nothing
-                fs.writeFile(helpers.filename, updatedContents, (err) => { if (err) console.log(err); })//overwrite file with updated contents
+                    fs.writeFile(helpers.filename, updatedContents, (err) => { if (err) console.log(err); })//overwrite file with updated contents
+                })
             });
         }
         return await helpers.collectorTracker("stopped", collectors - 1);
@@ -113,6 +126,7 @@ const data = {
         if (spoilerFiles.length > 0) { unspoiler = true; } //spoiler on image even though spoiler not selected - unspoiler condition is flagged
         return unspoiler;
     }
+
 }
 
 module.exports = { data, helpers };

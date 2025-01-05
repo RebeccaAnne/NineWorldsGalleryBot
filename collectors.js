@@ -68,7 +68,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
             if ((reaction.emoji.name === helpers.yEmoji || reaction.emoji.name === helpers.spoilerEmoji || reaction.emoji.name === helpers.nsfwEmoji ||
                 reaction.emoji.name === helpers.checkEmoji)) {
                 const reactors = await reaction.users.fetch();//get the people who reacted
-                reactors.forEach(async (id) => {//for each person who used each emoji
+                reactors.forEach( (id) => {//for each person who used each emoji
                     if (id == artMessage.author.id) {//only care about emoji from the artist
                         if (reaction.emoji.name === helpers.checkEmoji) doneDetected = true
                         else if (reaction.emoji.name === helpers.yEmoji) yesDetected = true
@@ -102,8 +102,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
                 reaction.emoji.name === helpers.checkEmoji) && user.id === artMessage.author.id;
         };
         const collector = botResponse.createReactionCollector({ filter: collectorFilter, time: mainTimeout, dispose: true }); //watch the message for the right emoji
-        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, true);
-        //increment active collectors and report (do add to file, even reinitialize has removed it and needs it back)
+        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, !reinitialize);
 
         //end on detecting ✅, record detecting the others
         collector.on('collect', async (reaction, user) => {
@@ -261,8 +260,7 @@ const unspoilerCollector = async (artMessage, botResponse, reinitialize) => {
     }
     if (reinitialize) await data.waitFor(_ => reinitialized === true);//if reinitializing, wait for the reaction loop to complete 
     if (collectorNeeded) {//don't collect unless needed
-        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, reinitialize);//increment active collectors and report 
-        //don't add to file unless this is a reinitialization
+        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, false);//increment active collectors and report 
 
         const unspoilerFilter = (reaction, user) => { return ((reaction.emoji.name === helpers.yesEmoji || reaction.emoji.name === helpers.noEmoji) && user.id === artMessage.author.id) };//filter for emojis by original poster
         const unspoilerCollector = botResponse.createReactionCollector({ filter: unspoilerFilter, time: clarificationTimeout, dispose: true }); //bot watches for a reaction
@@ -340,8 +338,7 @@ const spoilerCollector = async (artMessage, botResponse, reinitialize) => {
         const replyFilter = (reply) => { return (artMessage.author.id === reply.author.id && reply.reference && reply.reference.messageId === botResponse.id) };//filter for a reply from the poster to the bot
         const replyCollector = botResponse.channel.createMessageCollector({ filter: replyFilter, time: clarificationTimeout, max: 1 })//message collector watches for just the first applicable reply
         const noCollector = botResponse.createReactionCollector({ filter: noFilter, time: clarificationTimeout }); //reaction collector watches for a 🇳
-        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, reinitialize);//increment active collectors and report 
-        //don't add to file unless this is a reinitialization
+        collectors = await data.collectorsUp(collectors, botResponse.guildId, botResponse.channelId, botResponse.id, false);//increment active collectors and report 
 
         var spoilerTag;//create blank, collect if supplied
 

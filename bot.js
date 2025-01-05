@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { data, helpers } = require('./data.js');
 const { artCollector, startUp, unspoilerCollector, spoilerCollector } = require('./collectors.js');
-//const postImage = require('./postImage.js').postImage;
+const { Mutex } = require('async-mutex');
 
 const client = new Client({//set up basic context with relevant action permissions
   intents: [
@@ -60,14 +60,16 @@ client.on("ready", async () => {//when the bot first logs in
   await startUp(client);//set collector counter and prep gallery channel reference on bot start
 
   var reinitializedPosts = 0;//counters
-  var droppedPosts = 0;
   var processed = 0;
+
+  var droppedPosts = []
 
   //connect to message list file on startup and parse the discord links
   fs.readFile(helpers.filename, async (err, contents) => {
     if (err) console.log(err);//log error if any
     var cachedLinks = contents.toString().replaceAll("\r", "").split("\n");//trim and split to make neat list
-    cachedLinks.forEach(async link => {//try each link
+    for (iLink = 0; iLink < cachedLinks.length; iLink++) {
+      var link = cachedLinks[iLink];
       if (data.linkRegex.test(link)) {//check if the link parses
         var [cachedMessageId, cachedChannelId] = data.parseLink(link); //parse link
         var cachedChannel;
@@ -108,7 +110,7 @@ client.on("ready", async () => {//when the bot first logs in
                 if (howLongAgo > data.day * 2 && yesDetected == false) {
 
                   await cachedPost.edit({ content: data.timeout });
-                  droppedPosts++;//drop 1 - different tracking number
+                  droppedPosts.push(link);//drop 1 - different tracking number
 
                   console.log("Dropping post for timeout: " + link)
                   console.log("Now is " + Date.now())
@@ -130,7 +132,7 @@ client.on("ready", async () => {//when the bot first logs in
                 }
                 else {//if it got this far and nothing matched, edit post with unwatch message
                   await cachedPost.edit({ content: data.genericEndMessage });
-                  droppedPosts++;//drop 1 - different tracking number
+                  droppedPosts.push(link);//drop 1 - different tracking number
                 }
               }
             }
@@ -142,10 +144,18 @@ client.on("ready", async () => {//when the bot first logs in
         //after processing it all, log count and dump file
         console.log(`Restarting monitoring of ${reinitializedPosts} ` + (reinitializedPosts === 1 ? "post" : "posts" + "!"));
         //if any were simply dropped
-        if (droppedPosts > 0) console.log(`Edited ${droppedPosts} untracked ` + (droppedPosts === 1 ? "post" : "posts" + "!"));
-        fs.writeFile(helpers.filename, "", (err) => { if (err) console.log(err); })//log error if any
+        if (droppedPosts > 0) console.log(`Edited ${droppedPosts.length} untracked ` + (droppedPosts === 1 ? "post" : "posts" + "!"));
       }
-    })
+    }
+
+    // Remove all the dropped links from the file
+    for (var iDroppedPost = 0; iDroppedPost < droppedPosts.length; iDroppedPost++) {
+      link = droppedPosts[iDroppedPost];
+      await data.getMutex().runExclusive(async () => {
+        const updatedContents = contents.toString().replace(link, "").trim();//replace first instance of that link in the file with nothing
+        fs.writeFile(helpers.filename, updatedContents, (err) => { if (err) console.log(err); })//overwrite file with updated contents
+      })
+    }
   })
 })
 
