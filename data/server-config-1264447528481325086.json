@@ -1,5 +1,8 @@
 {
     "guildId": "1264447528481325086",
-    "galleryChannelId": "1323455793064050729",
-    "nsfwChannelId": "1323456378693746808"
+    "artGalleryChannelId": "1323455793064050729",
+    "nsfwArtChannelId": "1323456378693746808",
+    "gdocGalleryChannelId": "1323455793064050729",
+    "nsfwGdocChannelId": "1323456378693746808"
+
 }

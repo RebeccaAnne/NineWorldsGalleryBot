@@ -61,7 +61,6 @@ client.on("ready", async () => {//when the bot first logs in
 
   var reinitializedPosts = 0;//counters
   var processed = 0;
-
   var droppedPosts = []
 
   //connect to message list file on startup and parse the discord links
@@ -145,7 +144,7 @@ client.on("ready", async () => {//when the bot first logs in
         //after processing it all, log count and dump file
         console.log(`Restarting monitoring of ${reinitializedPosts} ` + (reinitializedPosts === 1 ? "post" : "posts" + "!"));
         //if any were simply dropped
-        if (droppedPosts > 0) console.log(`Edited ${droppedPosts.length} untracked ` + (droppedPosts === 1 ? "post" : "posts" + "!"));
+        if (droppedPosts.length > 0) console.log(`Edited ${droppedPosts.length} untracked ` + (droppedPosts === 1 ? "post" : "posts" + "!"));
       }
     }
 
@@ -166,28 +165,46 @@ client.on("messageCreate", async pingMessage => {//respond to messages where the
 
     const pingChannel = pingMessage.channel; //the channel it was pinged in
     const repliedTo = pingMessage.reference; //the referenced (replied to) message if any
-    var artMessage = pingMessage; //by default, the message being worked on is the one where the bot was pinged
+    let artMessage;
+    let repliedMessage;
+    let gdocMessage;
 
     if (repliedTo) {//if there is a reply reference, find the reply message
-      const flaggedMessage = await pingChannel.messages.fetch(repliedTo.messageId);
-      if (flaggedMessage.attachments.size > 0 && flaggedMessage.author.id != process.env.BOTID) {
-        artMessage = flaggedMessage;
-      } //if there is an image in the ref message, and it wasn't posted by this bot, choose that message
+      repliedMessage = await pingChannel.messages.fetch(repliedTo.messageId);
     }
 
-    //if there wasn't a reply, or wasn't art in the reply, we're still on the ping message - check image and author again before proceeding
-    if (artMessage.attachments.size > 0 && artMessage.author.id != process.env.BOTID) {
+    if (repliedTo && repliedMessage.attachments.size > 0 && repliedMessage.author.id != process.env.BOTID) {
+      // If there is an image in the replied to message, and it wasn't posted by this bot, choose that message
+      artMessage = repliedMessage;
+    }
+    else if (pingMessage.attachments.size > 0 && pingMessage.author.id != process.env.BOTID) {
+      // Check if the message in which the bot was pinged has art
+      artMessage = pingMessage;
+    }
+    else if (repliedTo && repliedMessage.content.includes("docs.google.com")) {
+      // check the replied message for gdocs
+      gdocMessage = repliedMessage
+    }
+    else if (repliedTo && repliedMessage.content.includes("docs.google.com")) {
+      // Check the pinged message for gdocs
+      gdocMessage = pingMessage
+    }
 
-      artMessage.reply(data.artResponseMessage(artMessage.author.id)).then(async (botResponse) => {//send the message, including user reference
+    let postDescription = artMessage ? data.artDescription : data.gDocDescription;
+    let message = artMessage ? artMessage : gdocMessage;
+
+    if (message) {
+      // We found art or a gdoc!
+      message.reply(data.artResponseMessage(postDescription, message.author.id)).then(async (botResponse) => {//send the message, including user reference
         botResponse.react(helpers.yEmoji);
         botResponse.react(helpers.nsfwEmoji);
         botResponse.react(helpers.spoilerEmoji);
         botResponse.react(helpers.checkEmoji);//bot reacts to its own message with all the emojis
 
         //initialize collector (the function will post, it doesn't need data return but does need client context)
-        artCollector(artMessage, botResponse, false);
+        artCollector(message, botResponse, false);
       });
     }
-    else pingMessage.reply(data.noImageMessage); //report if no images found in either ping message or reply
+    else pingMessage.reply(data.noImageMessage); //report if no images/gdocs found in either ping message or reply
   }
 });

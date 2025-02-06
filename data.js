@@ -31,32 +31,34 @@ const helpers = {
 // if the strings don't match and give up on them!
 
 const data = {
-    artResponseMessage: (artistId) => {
+    artDescription : "some art",
+    gDocDescription : "a google doc",
+    artResponseMessage: (postDescription, artistId) => {
         return "Hi, <@" + artistId +
-            `>! It looks like you posted some art! Please react with ${helpers.yEmoji} if you want me to put it in my gallery.\n` +
-            " (You can delete it or edit the text later with /delete or /edit.)\n\n" +
-            `Please use ${helpers.nsfwEmoji} if your post has explicit sexual content. \n` +
-            `Please use ${helpers.spoilerEmoji} if your post has content warnings such as noncon or graphic depictions of violence. \n` +
-            "(I'll ask for specific tags before posting, and the image will be put behind spoilers in the gallery.)\n\n" +
+            `>! It looks like you posted ${postDescription}! Please react with ${helpers.yEmoji} if you want me to put it in my gallery.\n` +
+            " (You can delete it or edit the text later with /delete or /edit.)\n" +
+            ` - Please use ${helpers.nsfwEmoji} if your post has explicit sexual content. \n` +
+            ` - Please use ${helpers.spoilerEmoji} if your post has content warnings such as noncon or graphic depictions of violence. ` +
+            "(I'll ask for specific tags before posting, and the content will be put behind spoilers in the gallery.)\n\n" +
             `When you're done reacting, or if you don't want me to post, please click ${helpers.checkEmoji} to tell me to move on.`
     },
-    noMessage: "Okay, I won't post this image to the gallery. Thanks for telling me!",
-    noImageMessage: "Sorry, I don't see any images there for me to record.",
+    noMessage: "Okay, I won't post this to the gallery. Thanks for telling me!",
+    noImageMessage: "Sorry, I don't see any images or gdocs there for me to record.",
     yesMessage: (spoiler, links) => { //posting message is dependent on the spoiler toggle and post links
-        var yesMessage = "Okay, your image is posted to "; //basic text
+        var yesMessage = "Okay, your post is posted to "; //basic text
         if (postLinks.length > 1) { yesMessage += `[both](<${links[0]}>) [galleries](<${links[1]}>)` }
         else { yesMessage += `the [gallery](<${links[0]}>)` } //one or both post links
         if (spoiler) yesMessage += ". I made sure to spoiler it"; //extension
         yesMessage += ". If you need to fix things later, you can always use /edit!"; //end
         return yesMessage;
     },
-    unspoilerMessage: "You didn't ask me to add spoilers, but at least one image here is already spoilered. Would you like me to post your art with all image spoilers removed?\n\n" +
+    unspoilerMessage: "You didn't mark this image as having content warnings, but at least one image here is already spoilered. Would you like me to post your art with all image spoilers removed?\n\n" +
         `Please tell me ${helpers.yesEmoji} or ${helpers.noEmoji}`,
-    spoilerMessage: "Do you want to add a spoiler tag to the gallery post? You can reply to this post with the spoiler tag.\n\n" +
-        `If you use ${helpers.nEmoji} (or ignore me long enough), I'll move on without a tag.`,
+    spoilerMessage: "Please reply to this post with tags for your content warnings.\n\n" +
+        `If you use ${helpers.nEmoji} (or ignore me long enough), I'll move on without tags.`,
     timeout: "I've timed out, so I won't take responses here. Call me again if you need me!",
     genericEndMessage: "I am no longer watching this message. Please call me again if you need me!",
-    spoilerField: "Spoiler Tag",//don't change this one, field names should be stable!
+    spoilerField: "Warning Tags",//don't change this one, field names should be stable!
     manualEndReason: "manualPost",
     day: 24 * helpers.hour,//24 hours
     ephemeralTimeout: helpers.hour / 2, //half an hour
@@ -94,9 +96,9 @@ const data = {
             //read in whole file
             await data.getMutex().runExclusive(async () => {
                 fs.readFile(helpers.filename, (err, contents) => {
-                if (err) console.log(err);//log error if any
-                const link = helpers.generateLink(guildId, channelId, messageId) //generate discord link
-                const updatedContents = contents.toString().replace(link, "").trim();//replace first instance of that link in the file with nothing
+                    if (err) console.log(err);//log error if any
+                    const link = helpers.generateLink(guildId, channelId, messageId) //generate discord link
+                    const updatedContents = contents.toString().replace(link, "").trim();//replace first instance of that link in the file with nothing
                     fs.writeFile(helpers.filename, updatedContents, (err) => { if (err) console.log(err); })//overwrite file with updated contents
                 })
             });
