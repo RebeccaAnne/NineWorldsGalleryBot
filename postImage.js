@@ -18,11 +18,15 @@ async function postImage(artMessage, postingChannels, nsfw, spoiler, spoilerTag,
         artMessage.id); //create link to original post
 
     let postingChannel;
+    let creatorFieldName;
 
     //create attachable image and embedded data
     var embeds = [];
     var imageFiles = [];
     if (messageAttachments) {
+        // This is art
+        creatorFieldName = "Artist";
+
         messageAttachments.forEach(async attachment => { //prep each image into a file array with spoilers as necessary
 
             var imageUrl = attachment.url; //get url of actual image
@@ -44,8 +48,11 @@ async function postImage(artMessage, postingChannels, nsfw, spoiler, spoilerTag,
         postingChannel = nsfw ? postingChannels.nsfwArtChannel : postingChannels.artGalleryChannel;
     }
     else {
-        // If there weren't message attachements this is a gdoc. Copy any gdoc embeds from the original 
-        // message here, putting things under spoilers as necessary (I can't figure out how to spoil a whole embed, alas)
+        // If there weren't message attachements this is a gdoc. 
+        creatorFieldName = "Author";
+
+        // Copy any gdoc embeds from the original message here, putting things under spoilers as
+        // necessary (I can't figure out how to spoil a whole embed, alas)
         artMessage.embeds.forEach(originalMessageEmbed => {
 
             //Yes this string check is probably fragile. :shrug:
@@ -59,7 +66,7 @@ async function postImage(artMessage, postingChannels, nsfw, spoiler, spoilerTag,
 
                 // Add the preview text from the generated embed
                 description += originalMessageEmbed.description;
-                
+
                 // Close the spoiler tag if necessary
                 if (spoiler) {
                     description += "||"
@@ -78,7 +85,7 @@ async function postImage(artMessage, postingChannels, nsfw, spoiler, spoilerTag,
 
     const embed = new EmbedBuilder() //embed posts tagged data, making the gallery entry nice and clean and updatable as needed
         .setColor("#d81b0e")//discord win red
-        .addFields({ name: "Artist", value: `<@${artistId}>` })//the author's discord id
+        .addFields({ name: creatorFieldName, value: `<@${artistId}>` })//the author's discord id
         .setTimestamp(artMessage.createdTimestamp);//timestamp of original post
 
     embeds.push(embed);
@@ -90,7 +97,7 @@ async function postImage(artMessage, postingChannels, nsfw, spoiler, spoilerTag,
         if (spoiler) {
             // If we're spoiling for content warnings, and there aren't any spoiler tags in the message
             // already, spoil the content, just in case.
-            
+
             // regex to handle |'s as special characters
             addSpoilerBars = (messageContent.search(/\|\|/g) == -1);
             console.log("addSpoilerBars: " + addSpoilerBars);
@@ -110,7 +117,7 @@ async function postImage(artMessage, postingChannels, nsfw, spoiler, spoilerTag,
     //add spoiler tag as field if tag present and spoiler true
     if (spoiler && spoilerTag) embed.addFields({ name: data.spoilerField, value: spoilerTag })
 
-    embed.addFields({ name: "Links", value: `[Original](${artLink})` });//this one looks good if it's last
+    embed.addFields({ name: "Link", value: `[Original](${artLink})` });//this one looks good if it's last
 
     var artPost = { //combine all the art together for multiple similar sends
         embeds: embeds,
