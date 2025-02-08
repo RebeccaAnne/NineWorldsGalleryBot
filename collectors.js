@@ -25,16 +25,18 @@ const startUp = async (client) => {//startup function called when bot activates
     //set up posting channels
     for (let i = 0; i < serverConfigFiles.length; i++) {
         let serverConfigFile = serverConfigFiles[i];
-        //console.log("serverConfigFile: ")
-        //console.log(serverConfigFile)
         const filePath = path.join(dataPath, serverConfigFile);
         const serverConfig = require(filePath);
 
-        //console.log(serverConfig);
-
-        const galleryChannel = await client.channels.cache.get(serverConfig.galleryChannelId); //get gallery channel
-        const nsfwChannel = await client.channels.cache.get(serverConfig.nsfwChannelId);
-        allPostingChannels[serverConfig.guildId] = [galleryChannel, nsfwChannel];//get both (narrow to just gallery later based on user selection)
+        allPostingChannels[serverConfig.guildId] = {};
+        allPostingChannels[serverConfig.guildId].artGalleryChannel =
+            await client.channels.cache.get(serverConfig.artGalleryChannelId);
+        allPostingChannels[serverConfig.guildId].nsfwArtChannel =
+            await client.channels.cache.get(serverConfig.nsfwArtChannelId);
+        allPostingChannels[serverConfig.guildId].gdocGalleryChannel =
+            await client.channels.cache.get(serverConfig.gdocGalleryChannelId);
+        allPostingChannels[serverConfig.guildId].nsfwGdocChannel =
+            await client.channels.cache.get(serverConfig.nsfwGdocChannelId);
     }
 }
 
@@ -68,7 +70,7 @@ const artCollector = async (artMessage, botResponse, reinitialize) => {
             if ((reaction.emoji.name === helpers.yEmoji || reaction.emoji.name === helpers.spoilerEmoji || reaction.emoji.name === helpers.nsfwEmoji ||
                 reaction.emoji.name === helpers.checkEmoji)) {
                 const reactors = await reaction.users.fetch();//get the people who reacted
-                reactors.forEach( (id) => {//for each person who used each emoji
+                reactors.forEach((id) => {//for each person who used each emoji
                     if (id == artMessage.author.id) {//only care about emoji from the artist
                         if (reaction.emoji.name === helpers.checkEmoji) doneDetected = true
                         else if (reaction.emoji.name === helpers.yEmoji) yesDetected = true
@@ -198,16 +200,10 @@ const finishAndPost = async (
 
         //if yes, make the posts!
         if (yesDetected) {
-            //get all the posting channels (in format [gallery, nsfw]) (Can we do better than this at some point?)
-            var postingChannels = allPostingChannels[artMessage.guild.id];
-            if (nsfwDetected) {
-                postingChannels = [allPostingChannels[artMessage.guild.id][1]];//still an array, but just the second element
-            }
-            else {
-                postingChannels = [allPostingChannels[artMessage.guild.id][0]];//still an array, but just the first element
-            }
             console.log("guildId: " + artMessage.guild.id)
-            confirmationMessage = await postImage(artMessage, postingChannels, spoilerDetected, spoilerTag, unspoiler); //post to channels and return links to posts!
+            //post to channels and return links to posts!
+            confirmationMessage = await postImage(
+                artMessage, allPostingChannels[artMessage.guild.id], nsfwDetected, spoilerDetected, spoilerTag, unspoiler);
         }
         replaceMessage = confirmationMessage//prepare to edit in the message
     }
