@@ -59,24 +59,28 @@ async function postImage(artMessage, postingChannels, nsfw, spoiler, spoilerTag,
             if (originalMessageEmbed.provider.name == "Google Docs") {
                 let description = "";
 
-                // If we're spoiling, spoil the preview text in the gdoc embed
-                if (spoiler) {
-                    description += "||"
+                if (originalMessageEmbed.description) {
+                    // If we're spoiling, spoil the preview text in the gdoc embed
+                    if (spoiler) {
+                        description += "||"
+                    }
+
+                    // Add the preview text from the generated embed
+                    description += originalMessageEmbed.description;
+
+                    // Close the spoiler tag if necessary
+                    if (spoiler) {
+                        description += "||"
+                    }
                 }
-
-                // Add the preview text from the generated embed
-                description += originalMessageEmbed.description;
-
-                // Close the spoiler tag if necessary
-                if (spoiler) {
-                    description += "||"
-                }
-
                 const embed = new EmbedBuilder()
-                    .setDescription(description)
                     .setTitle(originalMessageEmbed.title)
-                    .setURL(originalMessageEmbed.url)
+                    .setURL(originalMessageEmbed.url);
 
+                if (description) {
+                    embed.setDescription(description)
+                }
+                
                 embeds.push(embed);
             }
         });
