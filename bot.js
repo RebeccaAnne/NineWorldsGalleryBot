@@ -181,11 +181,14 @@ client.on("messageCreate", async pingMessage => {//respond to messages where the
       // Check if the message in which the bot was pinged has art
       artMessage = pingMessage;
     }
-    else if (repliedTo && repliedMessage.content.includes("docs.google.com")) {
+    else if (repliedTo &&
+      (repliedMessage.content.includes("docs.google.com") ||
+        repliedMessage.content.includes("drive.google.com"))) {
       // check the replied message for gdocs
       gdocMessage = repliedMessage
     }
-    else if (repliedTo && repliedMessage.content.includes("docs.google.com")) {
+    else if (pingMessage.content.includes("docs.google.com") ||
+      pingMessage.content.includes("drive.google.com")) {
       // Check the pinged message for gdocs
       gdocMessage = pingMessage
     }
