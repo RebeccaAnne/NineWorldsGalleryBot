@@ -117,7 +117,8 @@ client.on("ready", async () => {//when the bot first logs in
                   console.log("How long ago " + howLongAgo)
                   console.log("48 hours " + data.day * 2)
                 }
-                else if (cachedPost.content === data.artResponseMessage(artMessage.author.id)) {
+                //BECKYTODO: FIX this to work for gdocs too!
+                else if (cachedPost.content === data.artResponseMessage("some art", artMessage.author.id)) {
                   artCollector(artMessage, cachedPost, true)
                   reinitializedPosts++;
                 }
